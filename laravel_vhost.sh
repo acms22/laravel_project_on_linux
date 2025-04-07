@@ -8,7 +8,8 @@ fi
 
 # Variables
 PROJECT_NAME="$1"
-PROJECT_ROOT="/www/${PROJECT_NAME}"
+WWW_PATH="/www"
+PROJECT_ROOT="${WWW_PATH}/${PROJECT_NAME}"
 DOCUMENT_ROOT="${PROJECT_ROOT}/public"
 APACHE_CONF_DIR="/etc/apache2/sites-available"
 CONF_FILE="${APACHE_CONF_DIR}/${PROJECT_NAME}.conf"
@@ -16,13 +17,14 @@ HOSTS_FILE="/etc/hosts"
 CURRENT_USER=$(whoami)
 
 # Check and create /www directory if it doesn't exist
-if [ ! -d "/www" ]; then
+if [ ! -d "${WWW_PATH}" ]; then
     echo "Creating /www directory..."
-    sudo mkdir /www
-    sudo chown "${CURRENT_USER}:www-data" /www
-    sudo chmod 775 /www
+    sudo mkdir "${WWW_PATH}"
 fi
-
+cd "${WWW_PATH}"
+sudo chown -R "${CURRENT_USER}:www-data" "${WWW_PATH}"
+sudo chmod -R 775 "${WWW_PATH}"
+pwd
 # Check if the project directory exists
 if [ ! -d "${PROJECT_ROOT}" ]; then
     echo "Creating project directory for ${PROJECT_NAME}..."
@@ -44,11 +46,13 @@ sudo bash -c "cat > ${CONF_FILE}" <<EOL
     <Directory ${DOCUMENT_ROOT}>
         AllowOverride All
         Require all granted
+        Options Indexes FollowSymLinks
     </Directory>
 
     <Directory ${PROJECT_ROOT}>
         AllowOverride All
         Require all granted
+        Options Indexes FollowSymLinks
     </Directory>
 
     ErrorLog \${APACHE_LOG_DIR}/${PROJECT_NAME}_error.log
